@@ -18,6 +18,7 @@ import ./packwiz
 import ./types
 import os
 import strutils
+import algorithm
 
 proc `--`(check: string): bool = 
   return check == ""
@@ -42,9 +43,7 @@ container.add create_pack_button
 container.add open_pack_button
 
 
-create_pack_button.onClick = proc(event: ClickEvent) = # this is mainly copy paste so its kinda messy. yeee. 
-# also you can only have one container on a window. so there's a layout vertical container, with a horizontal container in that vertical container for each field 
-  # start init window
+create_pack_button.onClick = proc(event: ClickEvent) =
   var create_window = newWindow "Create Pack - Packwiz.NiGUI"
 
   create_window.iconPath = "assets/packwiz_nigui.png"
@@ -101,8 +100,9 @@ create_pack_button.onClick = proc(event: ClickEvent) = # this is mainly copy pas
   var input_loader_container = newLayoutContainer Layout_Horizontal
 
   create_container.add input_loader_container
-
-  var loader_text = newComboBox @["quilt", "forge", "fabric", "vanilla"]
+  var loaders: seq[string] = @[$Modloader.Quilt, $Modloader.Forge, $Modloader.Fabric, $Modloader.None]
+  loaders.sort
+  var loader_text = newComboBox loaders
   var loader_label = newLabel "Mod Loader:"
 
   input_loader_container.add loader_label
@@ -152,7 +152,7 @@ create_pack_button.onClick = proc(event: ClickEvent) = # this is mainly copy pas
       loaderv_label.hide
       loaderv_text.hide
 
-open_pack_button.onClick = proc(event: ClickEvent) = # this is still WIP. you can if you want, nvm, just do it all lmao
+open_pack_button.onClick = proc(event: ClickEvent) = 
   var open_pack_select_window = newWindow "Open Pack - Packwiz-NiGUI"
 
   open_pack_select_window.width = 500
@@ -165,9 +165,6 @@ open_pack_button.onClick = proc(event: ClickEvent) = # this is still WIP. you ca
   var paths: seq[string]
   
   for path in walkDir "instances":
-    #var bool1 = fileExists(path.path / "pack.toml")
-    logger.info path.path / "pack.toml"
-
     if (path.path.dirExists) and fileExists(path.path / "pack.toml"): 
       paths.add path.path
   
@@ -176,6 +173,9 @@ open_pack_button.onClick = proc(event: ClickEvent) = # this is still WIP. you ca
   open_pack_select_container.add packSelectComboBox
   var packSelectButton = newButton "Open Pack"
   open_pack_select_container.add packSelectButton
+
+  packSelectButton.onClick = proc(event: ClickEvent) =
+
 
 
 show window
