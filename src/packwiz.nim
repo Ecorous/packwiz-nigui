@@ -16,7 +16,7 @@
 import std/os
 import std/osproc
 import strutils
-
+import sequtils
 import ./logging
 import ./types
 
@@ -24,6 +24,7 @@ let logger: Logger = getLogger "packwiz-nigui".createLoggingSource "packwiz"
 
 proc `^&`(packName: string): string =
     return "instances" / packName
+
 
 
 proc checkIfPackwiz*(): bool =
@@ -41,17 +42,24 @@ proc getPackwiz*(): string =
 
     if fileExists(result):
         result = absolutePath result
-# loader should likely be an enum. modloaderversion would be easier than mcversion :P well, maybe not for forge
-# Lmao true, we'll keep it as strings for now
+
 proc packwizInit*(packName: string = "TestPack", packAuthor: string = "TestAuthor", packVersion: string = "1.0.0", mcVersion: string = "1.19.2", modloader: Modloader = Modloader.None, modloaderVersion: string = "") = 
     if not dirExists "instances":
         createDir "instances"
-    if dirExists ^&packName:
+    if dirExists(^&packName) and (walkFiles(^&packName / "*").toSeq.len != 0):
         logger.error "Pack directory already exists! Delete " & ^&packName & " or choose a different name"
     else:
         createDir ^&packName
         var args: seq[string] = @["init", "--name", packName, "--author", packAuthor, "--version", packVersion, "--mc-version", mcVersion, "--modloader", toLowerAscii($modloader)]
-        if $modloader != "none" and toLowerAscii($modloader) != "vanilla":
-            args.add "--" & toLowerAscii($modloader) & "-version" # so yeah, my code in types.nim is probably cursed, have you read it?
+        if toLowerAscii($modloader) != "none" and toLowerAscii($modloader) != "vanilla":
+            logger.debug $modloader
+            args.add "--" & toLowerAscii($modloader) & "-version"
             args.add modloaderVersion # w
+        var toggleCommandOut: bool = false
+        var command: string = ""
+        command = command & getPackwiz() & " "
+        for arg in args:
+            command = command & arg & " "
+        if toggleCommandOut:
+            logger.debug command
         discard execProcess(getPackwiz(), ^&packName, args, options={poUsePath})

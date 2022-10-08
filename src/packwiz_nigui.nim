@@ -17,6 +17,7 @@ import logging
 import ./packwiz
 import ./types
 import os
+import strutils
 
 proc `--`(check: string): bool = 
   return check == ""
