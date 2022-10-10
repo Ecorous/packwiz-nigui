@@ -14,11 +14,13 @@
 
 import nigui
 import logging
+import parsetoml
 import ./packwiz
 import ./types
 import os
 import strutils
 import algorithm
+import sequtils
 
 proc `--`(check: string): bool = 
   return check == ""
@@ -36,148 +38,204 @@ var container = newLayoutContainer Layout_Vertical
 
 window.add(container)
 
-var create_pack_button = newButton "Create a new pack"
-var open_pack_button = newButton "Open an existing pack"
+var createPackButton = newButton "Create a new pack"
+var openPackButton = newButton "Open an existing pack"
 
-container.add create_pack_button
-container.add open_pack_button
+container.add createPackButton
+container.add openPackButton
 
 
-create_pack_button.onClick = proc(event: ClickEvent) =
-  var create_window = newWindow "Create Pack - Packwiz.NiGUI"
+createPackButton.onClick = proc(event: ClickEvent) =
+  var createWindow = newWindow "Create Pack - Packwiz.NiGUI"
 
-  create_window.iconPath = "assets/packwiz_nigui.png"
-  create_window.width = 300
-  create_window.height = 500
+  createWindow.iconPath = "assets/packwiz_nigui.png"
+  createWindow.width = 300
+  createWindow.height = 500
 
-  show create_window
+  show createWindow
   # end init window
-  var create_container = newLayoutContainer Layout_Vertical 
-  create_window.add create_container
+  var createContainer = newLayoutContainer Layout_Vertical 
+  createWindow.add createContainer
 
   # Pack Name field
-  var input_name_container = newLayoutContainer Layout_Horizontal
-  create_container.add input_name_container
+  var inputNameContainer = newLayoutContainer Layout_Horizontal
+  createContainer.add inputNameContainer
 
-  var name_text = newTextBox()
-  var name_label = newLabel "Pack Name:"
+  var nameText = newTextBox()
+  var nameLabel = newLabel "Pack Name:"
 
-  input_name_container.add name_label
-  input_name_container.add name_text
+  inputNameContainer.add nameLabel
+  inputNameContainer.add nameText
 
   # Pack Author field
-  var input_author_container = newLayoutContainer Layout_Horizontal
-  create_container.add input_author_container
+  var inputAuthorContainer = newLayoutContainer Layout_Horizontal
+  createContainer.add inputAuthorContainer
 
-  var author_text = newTextBox()
-  var author_label = newLabel "Pack Author:"
+  var authorText = newTextBox()
+  var authorLabel = newLabel "Pack Author:"
 
-  input_author_container.add author_label
-  input_author_container.add author_text
+  inputAuthorContainer.add authorLabel
+  inputAuthorContainer.add authorText
 
   # Pack Version field
-  var input_version_container = newLayoutContainer Layout_Horizontal
-  create_container.add input_version_container
+  var inputVersionContainer = newLayoutContainer Layout_Horizontal
+  createContainer.add inputVersionContainer
 
-  var version_text = newTextBox()
-  var version_label = newLabel "Pack Version:"
+  var versionText = newTextBox()
+  var versionLabel = newLabel "Pack Version:"
 
-  input_version_container.add version_label
-  input_version_container.add version_text
+  inputVersionContainer.add versionLabel
+  inputVersionContainer.add versionText
 
   # Minecraft Version field
-  var input_mcv_container = newLayoutContainer Layout_Horizontal
+  var inputMcvContainer = newLayoutContainer Layout_Horizontal
 
-  create_container.add input_mcv_container
+  createContainer.add inputMcvContainer
 
-  var mcv_text = newTextBox()
-  var mcv_label = newLabel "Minecraft Version:"
+  var mcvText = newTextBox()
+  var mcvLabel = newLabel "Minecraft Version:"
 
-  input_mcv_container.add mcv_label
-  input_mcv_container.add mcv_text
+  inputMcvContainer.add mcvLabel
+  inputMcvContainer.add mcvText
 
   # Mod Loader field
-  var input_loader_container = newLayoutContainer Layout_Horizontal
+  var inputLoaderContainer = newLayoutContainer Layout_Horizontal
 
-  create_container.add input_loader_container
+  createContainer.add inputLoaderContainer
   var loaders: seq[string] = @[$Modloader.Quilt, $Modloader.Forge, $Modloader.Fabric, $Modloader.None]
   loaders.sort
-  var loader_text = newComboBox loaders
-  var loader_label = newLabel "Mod Loader:"
+  var loaderText = newComboBox loaders
+  var loaderLabel = newLabel "Mod Loader:"
 
-  input_loader_container.add loader_label
-  input_loader_container.add loader_text
+  inputLoaderContainer.add loaderLabel
+  inputLoaderContainer.add loaderText
 
-  var input_loaderv_container = newLayoutContainer Layout_Horizontal
+  var inputLoaderVContainer = newLayoutContainer Layout_Horizontal
 
-  create_container.add input_loaderv_container
+  createContainer.add inputLoaderVContainer
+  
 
-  var loaderv_text = newTextBox()
-  var loaderv_label = newLabel "Quilt Loader Version:"
+  var loadervText = newTextBox()
+  var loadervLabel = newLabel "Quilt Loader Version:"
 
-  input_loaderv_container.add loaderv_label
-  input_loaderv_container.add loaderv_text
+  inputLoaderVContainer.add loadervLabel
+  inputLoaderVContainer.add loadervText
 
   var input_submit_container = newLayoutContainer Layout_Vertical
-  create_container.add input_submit_container
+  createContainer.add input_submit_container
 
   var submit_button = newButton "Submit"
   input_submit_container.add submit_button
   
   submit_button.onClick = proc(event: ClickEvent) =
-    if --name_text.text or --author_text.text or --version_text.text or --mcv_text.text:
+    if --nameText.text or --authorText.text or --versionText.text or --mcvText.text:
       packwizInit()
     else: 
-      packwizInit(name_text.text, author_text.text, version_text.text, mcv_text.text, toModLoader(loader_text.options[loader_text.index]), loaderv_text.text)
+      packwizInit(nameText.text, authorText.text, versionText.text, mcvText.text, toModLoader(loaderText.options[loaderText.index]), loadervText.text)
 
     window.alert("Modpack created! Note that this does not account for errors, check the console to see errors.")
 
-  loader_text.onChange = proc(event: ComboBoxChangeEvent) =
-    if loader_text.options[loader_text.index] == "quilt":
-      loaderv_label.show
-      loaderv_text.show
-      loaderv_label.text = "Quilt Loader Version"
+  loaderText.onChange = proc(event: ComboBoxChangeEvent) =
+    if loaderText.options[loaderText.index].toLowerAscii == "quilt":
+      loadervLabel.show
+      loadervText.show
+      loadervLabel.text = "Quilt Loader Version"
 
-    elif loader_text.options[loader_text.index] == "forge":
-      loaderv_label.show
-      loaderv_text.show
-      loaderv_label.text = "Forge Version"
+    elif loaderText.options[loaderText.index].toLowerAscii == "forge":
+      loadervLabel.show
+      loadervText.show
+      loadervLabel.text = "Forge Version"
 
-    elif loader_text.options[loader_text.index] == "fabric":
-      loaderv_label.show
-      loaderv_text.show
-      loaderv_label.text = "Fabric Loader Version"
+    elif loaderText.options[loaderText.index].toLowerAscii == "fabric":
+      loadervLabel.show
+      loadervText.show
+      loadervLabel.text = "Fabric Loader Version"
 
-    elif loader_text.options[loader_text.index] == "vanilla":
-      loaderv_label.hide
-      loaderv_text.hide
+    elif loaderText.options[loaderText.index].toLowerAscii == "vanilla":
+      loadervLabel.hide
+      loadervText.hide
 
-open_pack_button.onClick = proc(event: ClickEvent) = 
-  var open_pack_select_window = newWindow "Open Pack - Packwiz-NiGUI"
+openPackButton.onClick = proc(event: ClickEvent) = 
+  var openPackSelectWindow = newWindow "Open Pack - Packwiz-NiGUI"
 
-  open_pack_select_window.width = 500
-  open_pack_select_window.height = 300
-  open_pack_select_window.iconPath = "assets/packwiz_nigui.png"
+  openPackSelectWindow.width = 500
+  openPackSelectWindow.height = 300
+  openPackSelectWindow.iconPath = "assets/packwiz_nigui.png"
 
-  show open_pack_select_window 
+  show openPackSelectWindow 
 
-  var open_pack_select_container = newLayoutContainer Layout_Horizontal
+  var openPackSelectContainer = newLayoutContainer Layout_Horizontal
   var paths: seq[string]
   
   for path in walkDir "instances":
     if (path.path.dirExists) and fileExists(path.path / "pack.toml"): 
       paths.add path.path
   
-  var packSelectComboBox = newComboBox paths
-  open_pack_select_window.add open_pack_select_container #
-  open_pack_select_container.add packSelectComboBox
+  var packSelectComboBox = newComboBox paths # this is the combo box that the user selects from, we can get the current value by this.options[this.index]
+  openPackSelectWindow.add openPackSelectContainer #
+  openPackSelectContainer.add packSelectComboBox
   var packSelectButton = newButton "Open Pack"
-  open_pack_select_container.add packSelectButton
+  openPackSelectContainer.add packSelectButton
 
   packSelectButton.onClick = proc(event: ClickEvent) =
+    var packRoot: string = packSelectComboBox.options[packSelectComboBox.index]
+    openPackSelectWindow.dispose() # to make it so that the selection window is closed, otherwise values will break if they alt-tab and change the value
+    var packEditWindow = newWindow "Pack Edit - Packwiz-NiGUI"
+    packEditWindow.iconPath = "assets/packwiz_nigui.png"
+    packEditWindow.show
+    var packEditContainer = newLayoutContainer Layout_Vertical
+    packEditWindow.add packEditContainer 
+    var installModContainer = newLayoutContainer Layout_Horizontal 
+    packEditContainer.add installModContainer
 
+    # TODO: Get data from pack.toml and convert to modpack object
+    var loader: Modloader = Modloader.None
+    let tomlTable = parsetoml.parseFile(packRoot / "pack.toml")
+    if tomlTable["versions"].hasKey("quilt"):
+      loader = Modloader.Quilt
+    elif tomlTable["versions"].hasKey("fabric"):
+      loader = Modloader.Fabric
+    elif tomlTable["versions"].hasKey("forge"):
+      loader = Modloader.Forge
 
+    var mods: seq[Mod] = @[]
+    for file in walkFiles(packRoot / "mods" / "*"):
+        var toml = parsetoml.parseFile(file.path) # oki
+        var versionId: string
+        var projectId: string
 
+        var updateData: ModUpdateData = ModUpdateData(
+          
+        )
+        var modToAdd: Mod = Mod(
+                                name: toml["name"].getStr(),
+                                side: toModSide(toml["side"].getStr()),
+                                hashFormat: toml["download"]["hash-format"].getStr(),
+                                hash: toml["download"]["hash"].getStr(),
+                                
+                                ) 
+
+    
+    var modpack: Modpack = Modpack(
+      packName: tomlTable["name"].getStr("VeryCreativePackName"),
+      packAuthor: tomlTable["author"].getStr("VeryCreativeUsername"), # can we check if it exists by handling the error beforehand? and returning a default if it doesn't?
+      packVersion: tomlTable["version"].getStr("1.0.0"),
+      mcVersion: tomlTable["versions"]["minecraft"].getStr("1.19.2"),
+      modloader: loader
+    )
+
+    var installModLabel = newLabel "Install Mod:" # uh idk what to do-
+    var modSourceCombo = newComboBox @[$ModSource.Modrinth, $ModSource.Curseforge]
+    var modTextBox = newTextBox()
+    var installModButton = newButton "Install Mod"
+
+    installModContainer.add installModLabel
+    installModContainer.add modSourceCombo
+    installModContainer.add modTextBox
+    installModContainer.add installModButton
+
+    installModButton.onClick = proc(event: ClickEvent) = 
+      discard installMod(modpack, toModSource(modSourceCombo.options[modSourceCombo.index]), modTextBox.text)
 show window
 
 run app

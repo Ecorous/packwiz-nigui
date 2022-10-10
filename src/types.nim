@@ -15,7 +15,7 @@
 import strutils
 
 type Modloader* = enum # TODO: support other mod loaders
-  None, Fabric, Forge, Quilt
+    None, Fabric, Forge, Quilt
 
 type ModSide* = enum
     Server, Client, Both
@@ -34,17 +34,19 @@ type Mod* = object
     side: ModSide
     filename: string
     hashFormat: string
-    hash: string
+    hash: string 
     updateData: ModUpdateData
 
 type Modpack* = object
-  packName: string
-  packAuthor: string
-  packVersion: string
-  mcVersion: string
-  modloader: Modloader
-  mods: openArray[Mod]
+    packName*: string
+    packAuthor*: string
+    packVersion*: string
+    mcVersion*: string
+    modloader*: Modloader
+    mods*: seq[Mod]
 
+type Result* = enum
+    Sucess, Fail, Unknown
 
 proc toModLoader*(input: string): Modloader =
     if input.toLowerAscii == "quilt":
@@ -55,3 +57,17 @@ proc toModLoader*(input: string): Modloader =
         result = Modloader.Forge
     elif input.toLowerAscii == "none" or input.toLowerAscii == "vanilla":
         result = Modloader.None
+
+proc toModSource*(input: string): ModSource =
+    if input.toLowerAscii == "modrinth":
+        result = ModSource.Modrinth
+    elif input.toLowerAscii == "curseforge":
+        result = ModSource.Curseforge
+
+proc toModSide*(input: string): ModSide =
+    if input.toLowerAscii == "client":
+        result = ModSide.Client
+    elif input.toLowerAscii == "server":
+        result = ModSide.Server
+    elif input.toLowerAscii == "both":
+        result = ModSide.Both

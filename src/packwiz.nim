@@ -63,3 +63,12 @@ proc packwizInit*(packName: string = "TestPack", packAuthor: string = "TestAutho
         if toggleCommandOut:
             logger.debug command
         discard execProcess(getPackwiz(), ^&packName, args, options={poUsePath})
+
+proc installMod(pack: var Modpack, source: ModSource, modToInstall: string): Result = 
+    var packPath: string = ^&pack.packName
+    if not dirExists packPath: # anyway, do you understand this code? I want you to call this proc from the onClick proc
+        logger.error("Fatal Error. Stop messing with my code!!!")
+        1984.quit
+    var args: seq[string] = @[toLowerAscii($source), " install ", modToInstall]
+    discard execProcess(getPackwiz(), packPath, args, options={poUsePath})
+    # source can be gained from the combo box and toModSource()
